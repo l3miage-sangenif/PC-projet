@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>XMLVisitor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Persistence_g2_2</a> &gt; <a href="index.source.html" class="el_package">edu.uga.miage.m1.polygons.gui.persistence</a> &gt; <span class="el_source">XMLVisitor.java</span></div><h1>XMLVisitor.java</h1><pre class="source lang-java linenums">package edu.uga.miage.m1.polygons.gui.persistence;
+
+
+import java.io.StringWriter;
+import java.lang.System.Logger;
+
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import edu.uga.miage.m1.polygons.gui.shapes.Circle;
+import edu.uga.miage.m1.polygons.gui.shapes.SimpleShape;
+import edu.uga.miage.m1.polygons.gui.shapes.Square;
+import edu.uga.miage.m1.polygons.gui.shapes.Triangle;
+
+/**
+ * @author &lt;a href=&quot;mailto:christophe.saint-marcel@univ-grenoble-alpes.fr&quot;&gt;Christophe&lt;/a&gt;
+ */
+public class XMLVisitor implements Visitor {
+
+    private String representation;
+
+    private static Logger logger;
+
+<span class="fc" id="L35">    public XMLVisitor() {</span>
+<span class="fc" id="L36">      representation = null;</span>
+<span class="fc" id="L37">    }</span>
+
+    @Override
+    public void visit(Circle circle) {
+<span class="fc" id="L41">      representation = this.createXmlFormat(circle, &quot;circle&quot;);</span>
+<span class="fc" id="L42">    }</span>
+
+    @Override
+    public void visit(Square square) {
+<span class="fc" id="L46">      representation = this.createXmlFormat(square, &quot;square&quot;);</span>
+<span class="fc" id="L47">    }</span>
+
+    @Override
+    public void visit(Triangle triangle) {
+<span class="fc" id="L51">      representation = this.createXmlFormat(triangle, &quot;triangle&quot;);</span>
+<span class="fc" id="L52">    }</span>
+
+    /**
+     * @return the representation in JSon example for a Triangle:
+     *
+     *         &lt;pre&gt;
+     * {@code
+     *  &lt;shape&gt;
+     *    &lt;type&gt;triangle&lt;/type&gt;
+     *    &lt;x&gt;-25&lt;/x&gt;
+     *    &lt;y&gt;-25&lt;/y&gt;
+     *  &lt;/shape&gt;
+     * }
+     * &lt;/pre&gt;
+     */
+    public String getRepresentation() {
+<span class="fc" id="L68">        return representation;</span>
+    }
+
+    public String createXmlFormat(SimpleShape shape , String name) {
+<span class="fc" id="L72">      String xmlString= &quot;&quot;;</span>
+      try {
+<span class="fc" id="L74">            Element racine = null;</span>
+<span class="fc" id="L75">            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();</span>
+<span class="fc" id="L76">            DocumentBuilder docBuilder = dbFactory.newDocumentBuilder();</span>
+
+            // ÃÂ©lÃÂ©ment de racine
+<span class="fc" id="L79">            Document doc = docBuilder.newDocument();</span>
+<span class="fc" id="L80">            racine = doc.createElement(&quot;shape&quot;);</span>
+<span class="fc" id="L81">            doc.appendChild(racine);</span>
+
+            // le type
+<span class="fc" id="L84">            Element type = doc.createElement(&quot;type&quot;);</span>
+<span class="fc" id="L85">            type.appendChild(doc.createTextNode(name));</span>
+<span class="fc" id="L86">            racine.appendChild(type);</span>
+
+              // x
+<span class="fc" id="L89">            Element x = doc.createElement(&quot;x&quot;);</span>
+<span class="fc" id="L90">            x.appendChild(doc.createTextNode(String.valueOf(shape.getX())));</span>
+<span class="fc" id="L91">            racine.appendChild(x);</span>
+
+              // y
+<span class="fc" id="L94">            Element y = doc.createElement(&quot;y&quot;);</span>
+<span class="fc" id="L95">            y.appendChild(doc.createTextNode(String.valueOf(shape.getY())));</span>
+<span class="fc" id="L96">            racine.appendChild(y);</span>
+
+<span class="fc" id="L98">            TransformerFactory transformerFactory = TransformerFactory.newInstance();</span>
+<span class="fc" id="L99">            transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, &quot;&quot;);</span>
+<span class="fc" id="L100">            transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, &quot;&quot;);</span>
+<span class="fc" id="L101">            Transformer transformer = transformerFactory.newTransformer();</span>
+<span class="fc" id="L102">            StringWriter writer = new StringWriter();</span>
+<span class="fc" id="L103">            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, &quot;yes&quot;);</span>
+<span class="fc" id="L104">            transformer.transform(new DOMSource(racine), new StreamResult(writer));</span>
+
+<span class="fc" id="L106">            xmlString = writer.toString();</span>
+
+<span class="nc" id="L108">        } catch (ParserConfigurationException | TransformerException e) {</span>
+<span class="nc" id="L109">          logger.log(null,&quot;error append&quot;);</span>
+<span class="fc" id="L110">        }</span>
+<span class="fc" id="L111">      return xmlString;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

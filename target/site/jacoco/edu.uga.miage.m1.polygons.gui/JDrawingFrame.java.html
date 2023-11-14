@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JDrawingFrame.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Persistence_g2_2</a> &gt; <a href="index.source.html" class="el_package">edu.uga.miage.m1.polygons.gui</a> &gt; <span class="el_source">JDrawingFrame.java</span></div><h1>JDrawingFrame.java</h1><pre class="source lang-java linenums">package edu.uga.miage.m1.polygons.gui;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.util.EnumMap;
+import java.util.Iterator;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.System.Logger;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JToolBar;
+
+import edu.uga.miage.m1.polygons.gui.persistence.JSonVisitor;
+import edu.uga.miage.m1.polygons.gui.persistence.XMLVisitor;
+import edu.uga.miage.m1.polygons.gui.shapes.Circle;
+import edu.uga.miage.m1.polygons.gui.shapes.SimpleShape;
+import edu.uga.miage.m1.polygons.gui.shapes.Square;
+import edu.uga.miage.m1.polygons.gui.shapes.Triangle;
+
+/**
+ * This class represents the main application class, which is a JFrame subclass
+ * that manages a toolbar of shapes and a drawing canvas.
+ *
+ * @author &lt;a href=
+ *         &quot;mailto:christophe.saint-marcel@univ-grenoble-alpes.fr&quot;&gt;Christophe&lt;/a&gt;
+ */
+public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionListener, KeyListener {
+
+<span class="fc" id="L45">    private enum Shapes {</span>
+
+<span class="fc" id="L47">        SQUARE, TRIANGLE, CIRCLE</span>
+    }
+
+    private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L52">    private transient Deque&lt;SimpleShape&gt; list =  new ArrayDeque&lt;&gt;();</span>
+
+    private JToolBar mToolbar;
+
+    private Shapes mSelected;
+
+    private JPanel mPanel;
+
+    private JLabel mLabel;
+
+<span class="fc" id="L62">    private transient ActionListener mReusableActionListener = new ShapeActionListener(this);</span>
+
+    private static Logger logger;
+
+    
+
+    /**
+     * Tracks buttons to manage the background.
+     */
+<span class="fc" id="L71">    private EnumMap&lt;Shapes, JButton&gt; mButtons = new EnumMap&lt;&gt;(Shapes.class);</span>
+
+    /**
+     * Default constructor that populates the main window.
+     * 
+     * @param frameName
+     */
+    public JDrawingFrame(String frameName) {
+<span class="fc" id="L79">        super(frameName);</span>
+<span class="fc" id="L80">        addKeyListener(this);</span>
+<span class="fc" id="L81">        setFocusable(true);</span>
+<span class="fc" id="L82">        setFocusTraversalKeysEnabled(false);</span>
+        // Instantiates components
+<span class="fc" id="L84">        mToolbar = new JToolBar(&quot;Toolbar&quot;);</span>
+<span class="fc" id="L85">        mPanel = new JPanel();</span>
+<span class="fc" id="L86">        mPanel.setBackground(Color.WHITE);</span>
+<span class="fc" id="L87">        mPanel.setLayout(null);</span>
+<span class="fc" id="L88">        mPanel.setMinimumSize(new Dimension(400, 400));</span>
+<span class="fc" id="L89">        mPanel.addMouseListener(this);</span>
+<span class="fc" id="L90">        mPanel.addMouseMotionListener(this);</span>
+<span class="fc" id="L91">        mLabel = new JLabel(&quot; &quot;, 2);</span>
+        // Fills the panel
+<span class="fc" id="L93">        setLayout(new BorderLayout());</span>
+<span class="fc" id="L94">        add(mToolbar, BorderLayout.NORTH);</span>
+<span class="fc" id="L95">        add(mPanel, BorderLayout.CENTER);</span>
+<span class="fc" id="L96">        add(mLabel, BorderLayout.SOUTH);</span>
+        // Add shapes in the menu
+<span class="fc" id="L98">        addShape(Shapes.SQUARE, new ImageIcon(getClass().getResource(&quot;images/square.png&quot;)));</span>
+<span class="fc" id="L99">        addShape(Shapes.TRIANGLE, new ImageIcon(getClass().getResource(&quot;images/triangle.png&quot;)));</span>
+<span class="fc" id="L100">        addShape(Shapes.CIRCLE, new ImageIcon(getClass().getResource(&quot;images/circle.png&quot;)));</span>
+<span class="pc" id="L101">        addExport(&quot;export json&quot;, (ActionEvent e) -&gt; exportJson());</span>
+<span class="pc" id="L102">        addExport(&quot;export xml&quot;, (ActionEvent e) -&gt; exportXml());</span>
+<span class="fc" id="L103">        setPreferredSize(new Dimension(400, 400));</span>
+<span class="fc" id="L104">    }</span>
+
+    public void exportJson() {
+<span class="fc" id="L107">        Deque&lt;SimpleShape&gt; listCopy = new ArrayDeque&lt;&gt;(list);</span>
+<span class="fc" id="L108">        String jsonExport = &quot;&quot;;</span>
+<span class="fc" id="L109">        StringBuilder bld = new StringBuilder();</span>
+<span class="fc" id="L110">        JSonVisitor jsonVisiteur = new JSonVisitor();</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">        for (SimpleShape s : listCopy) {</span>
+<span class="fc" id="L112">            s.accept(jsonVisiteur);</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">            if (s== listCopy.peekFirst()) {</span>
+<span class="fc" id="L114">                bld.append(jsonVisiteur.getRepresentation());</span>
+            }
+            else {
+<span class="fc" id="L117">                bld.append(&quot;,&quot;);</span>
+<span class="fc" id="L118">                bld.append(jsonVisiteur.getRepresentation());</span>
+            }          
+<span class="fc" id="L120">        }</span>
+<span class="fc" id="L121">        jsonExport = bld.toString();</span>
+<span class="fc" id="L122">        exportGlobal(&quot;{\&quot;shapes\&quot;: [&quot; + jsonExport + &quot;]}&quot;, &quot;jsonExport.json&quot;);</span>
+<span class="fc" id="L123">        this.requestFocusInWindow();</span>
+<span class="fc" id="L124">    }</span>
+
+    public void exportXml() {
+<span class="fc" id="L127">        String xmlExport = &quot;&quot;;</span>
+<span class="fc" id="L128">        StringBuilder bld = new StringBuilder();</span>
+<span class="fc" id="L129">        XMLVisitor xmlVisitor = new XMLVisitor();</span>
+<span class="fc bfc" id="L130" title="All 2 branches covered.">        for (SimpleShape s : list) {</span>
+<span class="fc" id="L131">            s.accept(xmlVisitor);</span>
+<span class="fc" id="L132">            bld.append(xmlVisitor.getRepresentation());</span>
+<span class="fc" id="L133">        }</span>
+<span class="fc" id="L134">        xmlExport = bld.toString();</span>
+<span class="fc" id="L135">        exportGlobal(&quot;&lt;?xml version=\&quot;1.0\&quot; encoding=\&quot;utf-8\&quot;?&gt;&lt;root&gt;&lt;shapes&gt;&quot; + xmlExport + &quot;&lt;/shapes&gt;&lt;/root&gt;&quot;, &quot;xmlExport.xml&quot;);</span>
+<span class="fc" id="L136">        this.requestFocusInWindow();</span>
+<span class="fc" id="L137">    }</span>
+
+    private void exportGlobal(String s, String file) {
+<span class="fc" id="L140">        try (FileWriter myWriter = new FileWriter(file);){</span>
+<span class="fc" id="L141">            myWriter.write(s);</span>
+
+<span class="nc" id="L143">        } catch (IOException e) {</span>
+<span class="nc" id="L144">            logger.log(null,&quot;an error append&quot;);</span>
+<span class="fc" id="L145">        }</span>
+<span class="fc" id="L146">    }</span>
+
+    /**
+     * Injects an available &lt;tt&gt;SimpleShape&lt;/tt&gt; into the drawing frame.
+     * 
+     * @param name The name of the injected &lt;tt&gt;SimpleShape&lt;/tt&gt;.
+     * @param icon The icon associated with the injected &lt;tt&gt;SimpleShape&lt;/tt&gt;.
+     */
+    private void addShape(Shapes shape, ImageIcon icon) {
+<span class="fc" id="L155">        JButton button = new JButton(icon);</span>
+<span class="fc" id="L156">        button.setBorderPainted(false);</span>
+<span class="fc" id="L157">        mButtons.put(shape, button);</span>
+<span class="fc" id="L158">        button.setActionCommand(shape.toString());</span>
+<span class="fc" id="L159">        button.addActionListener(mReusableActionListener);</span>
+<span class="fc bfc" id="L160" title="All 2 branches covered.">        if (mSelected == null) {</span>
+<span class="fc" id="L161">            button.doClick();</span>
+        }
+<span class="fc" id="L163">        mToolbar.add(button);</span>
+<span class="fc" id="L164">        mToolbar.validate();</span>
+<span class="fc" id="L165">    }</span>
+
+    private void addExport(String text, ActionListener export) {
+<span class="fc" id="L168">        JButton button = new JButton(text);</span>
+<span class="fc" id="L169">        button.setBorderPainted(false);</span>
+<span class="fc" id="L170">        button.addActionListener(export);</span>
+<span class="fc" id="L171">        mToolbar.add(button);</span>
+<span class="fc" id="L172">        mToolbar.validate();</span>
+<span class="fc" id="L173">        repaint();</span>
+<span class="fc" id="L174">    }</span>
+
+    /**
+     * Implements method for the &lt;tt&gt;MouseListener&lt;/tt&gt; interface to
+     * draw the selected shape into the drawing canvas.
+     * 
+     * @param evt The associated mouse event.
+     */
+    public void mouseClicked(MouseEvent evt) {
+<span class="fc bfc" id="L183" title="All 2 branches covered.">        if (mPanel.contains(evt.getX(), evt.getY())) {</span>
+<span class="fc" id="L184">            Graphics2D g2 = (Graphics2D) mPanel.getGraphics();</span>
+<span class="pc bpc" id="L185" title="1 of 4 branches missed.">            switch (mSelected) {</span>
+                case CIRCLE:
+<span class="fc" id="L187">                    Circle c = new Circle(evt.getX(), evt.getY());</span>
+<span class="fc" id="L188">                    c.draw(g2);</span>
+<span class="fc" id="L189">                    list.addLast(c);</span>
+<span class="fc" id="L190">                    break;</span>
+                case TRIANGLE:
+<span class="fc" id="L192">                    Triangle t = new Triangle(evt.getX(), evt.getY());</span>
+<span class="fc" id="L193">                    t.draw(g2);</span>
+<span class="fc" id="L194">                    list.addLast(t);</span>
+<span class="fc" id="L195">                    break;</span>
+                case SQUARE:
+<span class="fc" id="L197">                    Square s = new Square(evt.getX(), evt.getY());</span>
+<span class="fc" id="L198">                    s.draw(g2);</span>
+<span class="fc" id="L199">                    list.addLast(s);</span>
+<span class="fc" id="L200">                    break;</span>
+                default:
+<span class="nc" id="L202">                    logger.log(null, &quot;No shape named &quot; + mSelected);</span>
+            }
+        }
+<span class="fc" id="L205">    }</span>
+
+    private void undoLastShape() {        
+<span class="fc bfc" id="L208" title="All 2 branches covered.">        if (!list.isEmpty()) {</span>
+<span class="fc" id="L209">            list.pollLast();</span>
+<span class="fc" id="L210">            playUndo(); </span>
+        }
+<span class="fc" id="L212">    }</span>
+
+    private void playUndo() {
+<span class="fc" id="L215">        Graphics2D g2 = (Graphics2D) mPanel.getGraphics();</span>
+
+        // Clear the canvas by filling it with a white background
+<span class="fc" id="L218">        g2.setColor(Color.WHITE);</span>
+<span class="fc" id="L219">        g2.fillRect(0, 0, mPanel.getWidth(), mPanel.getHeight());</span>
+<span class="fc bfc" id="L220" title="All 2 branches covered.">        for (SimpleShape s : list) {</span>
+<span class="fc" id="L221">            s.draw(g2);            </span>
+<span class="fc" id="L222">        }</span>
+
+        
+<span class="fc" id="L225">    }</span>
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+<span class="pc bpc" id="L229" title="1 of 4 branches missed.">        if ((e.getKeyCode() == KeyEvent.VK_Z) &amp;&amp; (e.isControlDown())) {</span>
+            // Ctrl+Z is pressed
+<span class="fc" id="L231">            undoLastShape();</span>
+        }
+<span class="fc" id="L233">    }</span>
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+        // Not used, but must be implemented
+<span class="fc" id="L238">    }</span>
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        // Not used, but must be implemented
+<span class="fc" id="L243">    }</span>
+
+
+    /**
+     * Implements an empty method for the &lt;tt&gt;MouseListener&lt;/tt&gt; interface.
+     * 
+     * @param evt The associated mouse event.
+     */
+    public void mouseEntered(MouseEvent evt) {
+        // Do nothing
+<span class="nc" id="L253">    }</span>
+
+    /**
+     * Implements an empty method for the &lt;tt&gt;MouseListener&lt;/tt&gt; interface.
+     * 
+     * @param evt The associated mouse event.
+     */
+    public void mouseExited(MouseEvent evt) {
+<span class="nc" id="L261">        mLabel.setText(&quot; &quot;);</span>
+<span class="nc" id="L262">        mLabel.repaint();</span>
+<span class="nc" id="L263">    }</span>
+
+    /**
+     * Implements method for the &lt;tt&gt;MouseListener&lt;/tt&gt; interface to initiate
+     * shape dragging.
+     * 
+     * @param evt The associated mouse event.
+     */
+    public void mousePressed(MouseEvent evt) {
+        // Do nothing
+<span class="nc" id="L273">    }</span>
+
+    /**
+     * Implements method for the &lt;tt&gt;MouseListener&lt;/tt&gt; interface to complete
+     * shape dragging.
+     * 
+     * @param evt The associated mouse event.
+     */
+    public void mouseReleased(MouseEvent evt) {
+        // Do nothing
+<span class="nc" id="L283">    }</span>
+
+    /**
+     * Implements method for the &lt;tt&gt;MouseMotionListener&lt;/tt&gt; interface to
+     * move a dragged shape.
+     * 
+     * @param evt The associated mouse event.
+     */
+    public void mouseDragged(MouseEvent evt) {
+        // Do nothing
+<span class="nc" id="L293">    }</span>
+
+    /**
+     * Implements an empty method for the &lt;tt&gt;MouseMotionListener&lt;/tt&gt;
+     * interface.
+     * 
+     * @param evt The associated mouse event.
+     */
+    public void mouseMoved(MouseEvent evt) {
+<span class="nc" id="L302">        modifyLabel(evt);</span>
+<span class="nc" id="L303">    }</span>
+
+    private void modifyLabel(MouseEvent evt) {
+<span class="nc" id="L306">        mLabel.setText(&quot;(&quot; + evt.getX() + &quot;,&quot; + evt.getY() + &quot;)&quot;);</span>
+<span class="nc" id="L307">    }</span>
+
+    public void setSelectedShape(ActionEvent evt) {
+<span class="fc" id="L310">        Iterator&lt;Shapes&gt; keys = mButtons.keySet().iterator();</span>
+<span class="fc bfc" id="L311" title="All 2 branches covered.">            while (keys.hasNext()) {</span>
+<span class="fc" id="L312">                Shapes shape = keys.next();</span>
+<span class="fc" id="L313">                JButton btn = mButtons.get(shape);</span>
+<span class="fc bfc" id="L314" title="All 2 branches covered.">                if (evt.getActionCommand().equals(shape.toString())) {</span>
+<span class="fc" id="L315">                    btn.setBorderPainted(true);</span>
+<span class="fc" id="L316">                    mSelected = shape;</span>
+                } else {
+<span class="fc" id="L318">                    btn.setBorderPainted(false);</span>
+                }
+<span class="fc" id="L320">                btn.repaint();</span>
+<span class="fc" id="L321">            }</span>
+<span class="fc" id="L322">            this.requestFocusInWindow();</span>
+<span class="fc" id="L323">    }</span>
+
+    /**
+     * Simple action listener for shape tool bar buttons that sets
+     * the drawing frame's currently selected shape when receiving
+     * an action event.
+     */
+    private class ShapeActionListener implements ActionListener {
+
+        private JDrawingFrame jDrawingFrame;
+
+<span class="fc" id="L334">        public ShapeActionListener(JDrawingFrame jDrawingFrame) {</span>
+<span class="fc" id="L335">            this.jDrawingFrame = jDrawingFrame;</span>
+<span class="fc" id="L336">        }</span>
+
+        public void actionPerformed(ActionEvent evt) {
+            // ItÃ¨re sur tous les boutons
+<span class="fc" id="L340">            jDrawingFrame.setSelectedShape(evt);</span>
+<span class="fc" id="L341">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>
