@@ -61,6 +61,8 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
 
     private transient ActionListener mReusableActionListener = new ShapeActionListener(this);
 
+    private SimpleShape shapeToMove;
+
     private static Logger logger;
 
     
@@ -279,6 +281,7 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
      * @param evt The associated mouse event.
      */
     public void mouseReleased(MouseEvent evt) {
+        shapeToMove=null;
         // Do nothing
     }
 
@@ -289,7 +292,22 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
      * @param evt The associated mouse event.
      */
     public void mouseDragged(MouseEvent evt) {
-        // Do nothing
+        if (shapeToMove==null)
+        for (SimpleShape simpleShape : list) {
+            if(simpleShape.getX()>=evt.getX()-50 && 
+                simpleShape.getX()<=evt.getX() && 
+                simpleShape.getY()>=evt.getY()-50 && 
+                simpleShape.getY()<=evt.getY()) {
+                    shapeToMove=simpleShape;
+            }
+        }
+        if (shapeToMove!=null){
+            shapeToMove.setX(evt.getX()-25);
+            shapeToMove.setY(evt.getY()-25);
+            playUndo();
+        }
+        // a faire : mettre la shape bouger en dernier(je crois) dans la liste
+        // mettre shape to move en list pour pouvoir faire les groupement
     }
 
     /**

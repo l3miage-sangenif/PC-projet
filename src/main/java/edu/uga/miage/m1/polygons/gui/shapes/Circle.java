@@ -67,4 +67,12 @@ public class Circle implements SimpleShape, Visitable {
         return mY;
     }
 
+    public void setX(int x) {
+        mX=x;
+    }
+
+    public void setY(int y) {
+        mY=y;
+    }
+
 }
