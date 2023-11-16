@@ -6,3 +6,5 @@ a faire :
 -mettre un patron commande pour pouvoir annuler la dernière action (pas forcement delete)
 -corriger dette technique du aux setter 
 -rajouter test deplacement
+
+-mettre les export dans des commande ( et faire les undo (surement en sauvgardant l'ancienne version))

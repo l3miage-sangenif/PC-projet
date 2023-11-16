@@ -26,8 +26,6 @@ public interface SimpleShape
 
     void accept(Visitor visitor);
 
-    void setX(int x);
-
-    void setY(int y);
+    void move(int x, int y);
 
 }
