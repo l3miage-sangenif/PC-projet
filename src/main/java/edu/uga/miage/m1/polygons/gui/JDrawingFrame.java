@@ -29,6 +29,7 @@ import javax.swing.JToolBar;
 import edu.uga.miage.m1.polygons.gui.persistence.JSonVisitor;
 import edu.uga.miage.m1.polygons.gui.persistence.XMLVisitor;
 import edu.uga.miage.m1.polygons.gui.shapes.Circle;
+import edu.uga.miage.m1.polygons.gui.shapes.Cube;
 import edu.uga.miage.m1.polygons.gui.shapes.SimpleShape;
 import edu.uga.miage.m1.polygons.gui.shapes.Square;
 import edu.uga.miage.m1.polygons.gui.shapes.Triangle;
@@ -44,7 +45,7 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
 
     private enum Shapes {
 
-        SQUARE, TRIANGLE, CIRCLE
+        SQUARE, TRIANGLE, CIRCLE, CUBE
     }
 
     private static final long serialVersionUID = 1L;
@@ -102,6 +103,7 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
         addShape(Shapes.SQUARE, new ImageIcon(getClass().getResource("images/square.png")));
         addShape(Shapes.TRIANGLE, new ImageIcon(getClass().getResource("images/triangle.png")));
         addShape(Shapes.CIRCLE, new ImageIcon(getClass().getResource("images/circle.png")));
+        addShape(Shapes.CUBE, new ImageIcon(getClass().getResource("images/underc.png")));
         addExport("export json", (ActionEvent e) -> exportJson());
         addExport("export xml", (ActionEvent e) -> exportXml());
         setPreferredSize(new Dimension(400, 400));
@@ -201,6 +203,11 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
                     Square s = new Square(evt.getX(), evt.getY());
                     s.draw(g2);
                     list.addLast(s);
+                    break;
+                case CUBE:
+                    Cube c2 = new Cube(evt.getX(), evt.getY());
+                    c2.draw(g2);
+                    list.addLast(c2);
                     break;
                 default:
                     logger.log(null, "No shape named " + mSelected);

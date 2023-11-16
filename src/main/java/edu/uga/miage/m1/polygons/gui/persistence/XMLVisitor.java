@@ -19,6 +19,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import edu.uga.miage.m1.polygons.gui.shapes.Circle;
+import edu.uga.miage.m1.polygons.gui.shapes.Cube;
 import edu.uga.miage.m1.polygons.gui.shapes.SimpleShape;
 import edu.uga.miage.m1.polygons.gui.shapes.Square;
 import edu.uga.miage.m1.polygons.gui.shapes.Triangle;
@@ -49,6 +50,11 @@ public class XMLVisitor implements Visitor {
     @Override
     public void visit(Triangle triangle) {
       representation = this.createXmlFormat(triangle, "triangle");
+    }
+
+    @Override
+    public void visit(Cube cube) {
+      representation = this.createXmlFormat(cube, "cube");
     }
 
     /**
