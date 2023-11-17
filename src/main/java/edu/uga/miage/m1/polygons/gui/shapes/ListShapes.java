@@ -2,12 +2,22 @@ package edu.uga.miage.m1.polygons.gui.shapes;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+
+import javax.swing.JPanel;
+
+import java.awt.Color;
 import java.awt.Graphics2D;
 
 public class ListShapes {
 
-    private transient Deque<SimpleShape> list =  new ArrayDeque<>();
+    private Deque<SimpleShape> list =  new ArrayDeque<>();
 
+    private JPanel mPanel;
+
+
+    public ListShapes(JPanel mPanel) {
+        this.mPanel=mPanel;
+    }
 
     public void addShape(SimpleShape shape) {
         list.addLast(shape);
@@ -16,23 +26,10 @@ public class ListShapes {
     public void remove(SimpleShape shape) {
         list.remove(shape);
     }
-    
-    public void moveShape(Circle shape, int x, int y) {
-        remove(shape);
-        addShape(new Circle(x, y));
-    }
-
-    public void moveShape(Square shape, int x, int y) {
-        remove(shape);
-        addShape(new Square(x, y));
-    }
-
-    public void moveShape(Triangle shape, int x, int y) {
-        remove(shape);
-        addShape(new Triangle(x, y));
-    }
 
     public void executeAll(Graphics2D g2) {
+        g2.setColor(Color.WHITE);
+        g2.fillRect(0, 0, mPanel.getWidth(), mPanel.getHeight());
         for (SimpleShape simpleShape : list) {
             simpleShape.draw(g2);
         }
@@ -43,7 +40,8 @@ public class ListShapes {
     }
 
     public void moveShape(SimpleShape shape, int x, int y) {
+        list.remove(shape);
         shape.move(x,y);
-        //moveShape(shape, coordXInit, coordYInit);
+        addShape(shape);
     }
 }

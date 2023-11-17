@@ -84,9 +84,10 @@ public class Triangle implements SimpleShape, Visitable {
     }
 
     @Override
-    public void move(int x, int y) {
+    public SimpleShape move(int x, int y) {
         mX=x;
-        mY=y;
+        this.mY=y;
+        return this;
     }
 
 }

@@ -3,8 +3,7 @@
 a faire : 
 -mettre shape to move en list pour pouvoir faire les groupement
 -faire les groupements
--mettre un patron commande pour pouvoir annuler la dernière action (pas forcement delete)
 -corriger dette technique du aux setter 
--rajouter test deplacement
+-fix bug ctrl+z et ctrl+y avec move
 
 -mettre les export dans des commande ( et faire les undo (surement en sauvgardant l'ancienne version))

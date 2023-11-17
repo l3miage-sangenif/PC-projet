@@ -76,9 +76,10 @@ public class Square implements SimpleShape, Visitable {
     }
 
     @Override
-    public void move(int x, int y) {
-        mX=x;
+    public SimpleShape move(int x, int y) {
+        this.mX=x;
         mY=y;
+        return this;
     }
 
 }
