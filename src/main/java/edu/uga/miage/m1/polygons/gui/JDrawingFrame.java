@@ -50,7 +50,7 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
 
     private static final long serialVersionUID = 1L;
 
-    private transient Deque<SimpleShape> list =  new ArrayDeque<>();
+    private transient Deque<SimpleShape> list = new ArrayDeque<>();
 
     private JToolBar mToolbar;
 
@@ -67,8 +67,6 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
     private MouseEvent lastDraggedEvt;
 
     private static Logger logger;
-
-    
 
     /**
      * Tracks buttons to manage the background.
@@ -116,13 +114,12 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
         JSonVisitor jsonVisiteur = new JSonVisitor();
         for (SimpleShape s : listCopy) {
             s.accept(jsonVisiteur);
-            if (s== listCopy.peekFirst()) {
+            if (s == listCopy.peekFirst()) {
                 bld.append(jsonVisiteur.getRepresentation());
-            }
-            else {
+            } else {
                 bld.append(",");
                 bld.append(jsonVisiteur.getRepresentation());
-            }          
+            }
         }
         jsonExport = bld.toString();
         exportGlobal("{\"shapes\": [" + jsonExport + "]}", "jsonExport.json");
@@ -138,16 +135,17 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
             bld.append(xmlVisitor.getRepresentation());
         }
         xmlExport = bld.toString();
-        exportGlobal("<?xml version=\"1.0\" encoding=\"utf-8\"?><root><shapes>" + xmlExport + "</shapes></root>", "xmlExport.xml");
+        exportGlobal("<?xml version=\"1.0\" encoding=\"utf-8\"?><root><shapes>" + xmlExport + "</shapes></root>",
+                "xmlExport.xml");
         this.requestFocusInWindow();
     }
 
     private void exportGlobal(String s, String file) {
-        try (FileWriter myWriter = new FileWriter(file);){
+        try (FileWriter myWriter = new FileWriter(file);) {
             myWriter.write(s);
 
         } catch (IOException e) {
-            logger.log(null,"an error append");
+            logger.log(null, "an error append");
         }
     }
 
@@ -215,10 +213,10 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
         }
     }
 
-    private void undoLastShape() {        
+    private void undoLastShape() {
         if (!list.isEmpty()) {
             list.pollLast();
-            playUndo(); 
+            playUndo();
         }
     }
 
@@ -229,10 +227,9 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
         g2.setColor(Color.WHITE);
         g2.fillRect(0, 0, mPanel.getWidth(), mPanel.getHeight());
         for (SimpleShape s : list) {
-            s.draw(g2);            
+            s.draw(g2);
         }
 
-        
     }
 
     @Override
@@ -252,7 +249,6 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
     public void keyReleased(KeyEvent e) {
         // Not used, but must be implemented
     }
-
 
     /**
      * Implements an empty method for the <tt>MouseListener</tt> interface.
@@ -290,8 +286,8 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
      * @param evt The associated mouse event.
      */
     public void mouseReleased(MouseEvent evt) {
-        shapeToMove=null;
-        lastDraggedEvt=null;
+        shapeToMove = null;
+        lastDraggedEvt = null;
         // Do nothing
     }
 
@@ -302,22 +298,23 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
      * @param evt The associated mouse event.
      */
     public void mouseDragged(MouseEvent evt) {
-        if (shapeToMove==null)
+        if (shapeToMove == null)
             for (SimpleShape simpleShape : list) {
-                if(simpleShape.getX()>=evt.getX()-50 && 
-                    simpleShape.getX()<=evt.getX() && 
-                    simpleShape.getY()>=evt.getY()-50 && 
-                    simpleShape.getY()<=evt.getY()) {
-                        shapeToMove=simpleShape;
+                if (simpleShape.getX() >= evt.getX() - 50 &&
+                        simpleShape.getX() <= evt.getX() &&
+                        simpleShape.getY() >= evt.getY() - 50 &&
+                        simpleShape.getY() <= evt.getY()) {
+                    shapeToMove = simpleShape;
+                    
                 }
             }
-        if (shapeToMove!=null){
-            if (lastDraggedEvt==null){
-                lastDraggedEvt=evt;
+        if (shapeToMove != null) {
+            if (lastDraggedEvt == null) {
+                lastDraggedEvt = evt;
             }
-            shapeToMove.setX(shapeToMove.getX()+evt.getX()-lastDraggedEvt.getX());
-            shapeToMove.setY(shapeToMove.getY()+evt.getY()-lastDraggedEvt.getY());
-            lastDraggedEvt=evt;
+            shapeToMove.setX(shapeToMove.getX() + evt.getX() - lastDraggedEvt.getX());
+            shapeToMove.setY(shapeToMove.getY() + evt.getY() - lastDraggedEvt.getY());
+            lastDraggedEvt = evt;
             list.remove(shapeToMove);
             list.addLast(shapeToMove);
             playUndo();
@@ -340,18 +337,18 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
 
     public void setSelectedShape(ActionEvent evt) {
         Iterator<Shapes> keys = mButtons.keySet().iterator();
-            while (keys.hasNext()) {
-                Shapes shape = keys.next();
-                JButton btn = mButtons.get(shape);
-                if (evt.getActionCommand().equals(shape.toString())) {
-                    btn.setBorderPainted(true);
-                    mSelected = shape;
-                } else {
-                    btn.setBorderPainted(false);
-                }
-                btn.repaint();
+        while (keys.hasNext()) {
+            Shapes shape = keys.next();
+            JButton btn = mButtons.get(shape);
+            if (evt.getActionCommand().equals(shape.toString())) {
+                btn.setBorderPainted(true);
+                mSelected = shape;
+            } else {
+                btn.setBorderPainted(false);
             }
-            this.requestFocusInWindow();
+            btn.repaint();
+        }
+        this.requestFocusInWindow();
     }
 
     /**
