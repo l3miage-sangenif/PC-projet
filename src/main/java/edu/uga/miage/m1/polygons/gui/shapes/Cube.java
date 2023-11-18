@@ -18,12 +18,17 @@
  */
 package edu.uga.miage.m1.polygons.gui.shapes;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.GradientPaint;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+
 import edu.uga.miage.m1.polygons.gui.persistence.Visitable;
 import edu.uga.miage.m1.polygons.gui.persistence.Visitor;
 import edu.uga.singleshape.CubePanel;
 
-public class Cube implements SimpleShape, Visitable  {
+public class Cube implements SimpleShape, Visitable {
 
     int mX;
 
@@ -37,10 +42,17 @@ public class Cube implements SimpleShape, Visitable  {
     /**
      * Implements the <tt>SimpleShape.draw()</tt> method for painting
      * the shape.
+     * 
      * @param g2 The graphics object used for painting.
      */
     public void draw(Graphics2D g2) {
-        CubePanel c =new CubePanel(100, mX, mY);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        GradientPaint gradient = new GradientPaint(mX, mY, Color.RED, mX + 50f, mY, Color.WHITE);
+        g2.setPaint(gradient);
+        BasicStroke wideStroke = new BasicStroke(2.0f);
+        g2.setColor(Color.black);
+        g2.setStroke(wideStroke);
+        CubePanel c = new CubePanel(50, mX + 15, mY + 45);
         c.paintComponent(g2);
     }
 
@@ -59,13 +71,12 @@ public class Cube implements SimpleShape, Visitable  {
 
     @Override
     public void setX(int x) {
-        mX=x;
+        mX = x;
     }
 
     @Override
     public void setY(int y) {
-        mY=y;
+        mY = y;
     }
-
 
 }
