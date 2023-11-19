@@ -11,23 +11,38 @@ import edu.uga.miage.m1.polygons.gui.persistence.Visitor;
  * @author <a href="mailto:christophe.saint-marcel@univ-grenoble-alpes.fr">Christophe</a>
  *
  */
-public interface SimpleShape
+public abstract class SimpleShape
 {
+    int mX;
+
+    int mY;
+
+    protected SimpleShape(int x, int y) {
+        mX = x - 25;
+        mY = y - 25;
+    }
 
     /**
      * Method to draw the shape of the extension.
      * @param g2 The graphics object used for painting.
      **/
-    void draw(Graphics2D g2);
+    public abstract void draw(Graphics2D g2);
     
-    int getX();
-    
-    int getY();
+    public int getX() {
+        return mX;
+    }
 
-    void accept(Visitor visitor);
+    public int getY() {
+        return mY;
+    }
 
-    void setX(int x);
+    public abstract void accept(Visitor visitor);
 
-    void setY(int y);
+    public void setX(int x) {
+        mX=x;
+    }
 
+    public void setY(int y) {
+        mY=y;
+    }
 }
