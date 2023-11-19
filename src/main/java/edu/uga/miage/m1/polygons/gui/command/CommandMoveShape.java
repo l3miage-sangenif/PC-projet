@@ -42,10 +42,7 @@ public class CommandMoveShape implements Command {
     }
 
     public boolean stackMultipleCommand(Command command) { // return true if the stack was possible and succesfull 
-        if (command instanceof CommandMoveShape) {
-            return stackMultipleCommandMove((CommandMoveShape) command);
-        }
-        return false;
+        return command instanceof CommandMoveShape;
     }
     
 }

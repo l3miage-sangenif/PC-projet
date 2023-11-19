@@ -319,7 +319,11 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
             CommandMoveShape moveShape = new CommandMoveShape(shapeToMove, lastDraggedEvt.getX(), lastDraggedEvt.getY(), evt);
             Graphics2D g2 = (Graphics2D) mPanel.getGraphics();
             moveShape.execute(listShapes, g2);
-            if(lastDraggedEvt!=evt && !moveShape.stackMultipleCommand(listCommands.peekFirst()) && shapeInit!=null){
+            // add a move command only once and then stack it to make ctrl+z and ctrl+y better
+            if(moveShape.stackMultipleCommand(listCommands.peekFirst()) && shapeInit!=null){
+                moveShape.stackMultipleCommandMove((CommandMoveShape) listCommands.peekFirst());
+            }
+            else {
                 listCommands.addFirst(moveShape);
             }
             lastDraggedEvt=evt;
