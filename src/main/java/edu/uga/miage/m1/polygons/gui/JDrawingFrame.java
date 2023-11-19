@@ -54,7 +54,6 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
 
     private static final long serialVersionUID = 1L;
 
-    private transient Deque<SimpleShape> list = new ArrayDeque<>();
     private JToolBar mToolbar;
 
     private Shapes mSelected;

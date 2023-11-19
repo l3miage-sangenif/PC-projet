@@ -54,12 +54,4 @@ public class Circle extends SimpleShape implements Visitable {
         visitor.visit(this);
     }
 
-    public int getX() {
-        return mX;
-    }
-
-    public int getY() {
-        return mY;
-    }
-
 }
