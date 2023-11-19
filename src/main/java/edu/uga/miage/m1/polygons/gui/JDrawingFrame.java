@@ -32,6 +32,7 @@ import edu.uga.miage.m1.polygons.gui.command.CommandMoveShape;
 import edu.uga.miage.m1.polygons.gui.persistence.JSonVisitor;
 import edu.uga.miage.m1.polygons.gui.persistence.XMLVisitor;
 import edu.uga.miage.m1.polygons.gui.shapes.Circle;
+import edu.uga.miage.m1.polygons.gui.shapes.Cube;
 import edu.uga.miage.m1.polygons.gui.shapes.ListShapes;
 import edu.uga.miage.m1.polygons.gui.shapes.SimpleShape;
 import edu.uga.miage.m1.polygons.gui.shapes.Square;
@@ -48,11 +49,12 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
 
     private enum Shapes {
 
-        SQUARE, TRIANGLE, CIRCLE
+        SQUARE, TRIANGLE, CIRCLE, CUBE
     }
 
     private static final long serialVersionUID = 1L;
 
+    private transient Deque<SimpleShape> list = new ArrayDeque<>();
     private JToolBar mToolbar;
 
     private Shapes mSelected;
@@ -109,6 +111,7 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
         addShape(Shapes.SQUARE, new ImageIcon(getClass().getResource("images/square.png")));
         addShape(Shapes.TRIANGLE, new ImageIcon(getClass().getResource("images/triangle.png")));
         addShape(Shapes.CIRCLE, new ImageIcon(getClass().getResource("images/circle.png")));
+        addShape(Shapes.CUBE, new ImageIcon(getClass().getResource("images/underc.png")));
         addExport("export json", (ActionEvent e) -> exportJson());
         addExport("export xml", (ActionEvent e) -> exportXml());
         setPreferredSize(new Dimension(400, 400));
@@ -121,13 +124,12 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
         JSonVisitor jsonVisiteur = new JSonVisitor();
         for (SimpleShape s : listCopy) {
             s.accept(jsonVisiteur);
-            if (s== listCopy.peekFirst()) {
+            if (s == listCopy.peekFirst()) {
                 bld.append(jsonVisiteur.getRepresentation());
-            }
-            else {
+            } else {
                 bld.append(",");
                 bld.append(jsonVisiteur.getRepresentation());
-            }          
+            }
         }
         jsonExport = bld.toString();
         exportGlobal("{\"shapes\": [" + jsonExport + "]}", "jsonExport.json");
@@ -144,16 +146,17 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
             bld.append(xmlVisitor.getRepresentation());
         }
         xmlExport = bld.toString();
-        exportGlobal("<?xml version=\"1.0\" encoding=\"utf-8\"?><root><shapes>" + xmlExport + "</shapes></root>", "xmlExport.xml");
+        exportGlobal("<?xml version=\"1.0\" encoding=\"utf-8\"?><root><shapes>" + xmlExport + "</shapes></root>",
+                "xmlExport.xml");
         this.requestFocusInWindow();
     }
 
     private void exportGlobal(String s, String file) {
-        try (FileWriter myWriter = new FileWriter(file);){
+        try (FileWriter myWriter = new FileWriter(file);) {
             myWriter.write(s);
 
         } catch (IOException e) {
-            logger.log(null,"an error append");
+            logger.log(null, "an error append");
         }
     }
 
@@ -214,6 +217,11 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
                     addShape.execute(listShapes, g2);
                     listCommands.addFirst(addShape);
                     break;
+                case CUBE:
+                    Cube c2 = new Cube(evt.getX(), evt.getY());
+                    c2.draw(g2);
+                    list.addLast(c2);
+                    break;
                 default:
                     logger.log(null, "No shape named " + mSelected);
             }
@@ -253,7 +261,6 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
         // Not used, but must be implemented
     }
 
-
     /**
      * Implements an empty method for the <tt>MouseListener</tt> interface.
      * 
@@ -290,8 +297,8 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
      * @param evt The associated mouse event.
      */
     public void mouseReleased(MouseEvent evt) {
-        shapeToMove=null;
-        lastDraggedEvt=null;
+        shapeToMove = null;
+        lastDraggedEvt = null;
         // Do nothing
     }
 
@@ -312,9 +319,9 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
                         shapeToMove=simpleShape;
                 }
             }
-        if (shapeToMove!=null){
-            if (lastDraggedEvt==null){
-                lastDraggedEvt=evt;
+        if (shapeToMove != null) {
+            if (lastDraggedEvt == null) {
+                lastDraggedEvt = evt;
             }
             CommandMoveShape moveShape = new CommandMoveShape(shapeToMove, lastDraggedEvt.getX(), lastDraggedEvt.getY(), evt);
             Graphics2D g2 = (Graphics2D) mPanel.getGraphics();
@@ -347,18 +354,18 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
 
     public void setSelectedShape(ActionEvent evt) {
         Iterator<Shapes> keys = mButtons.keySet().iterator();
-            while (keys.hasNext()) {
-                Shapes shape = keys.next();
-                JButton btn = mButtons.get(shape);
-                if (evt.getActionCommand().equals(shape.toString())) {
-                    btn.setBorderPainted(true);
-                    mSelected = shape;
-                } else {
-                    btn.setBorderPainted(false);
-                }
-                btn.repaint();
+        while (keys.hasNext()) {
+            Shapes shape = keys.next();
+            JButton btn = mButtons.get(shape);
+            if (evt.getActionCommand().equals(shape.toString())) {
+                btn.setBorderPainted(true);
+                mSelected = shape;
+            } else {
+                btn.setBorderPainted(false);
             }
-            this.requestFocusInWindow();
+            btn.repaint();
+        }
+        this.requestFocusInWindow();
     }
 
     /**

@@ -23,49 +23,36 @@ import java.awt.Color;
 import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import java.awt.geom.Ellipse2D;
+
 import edu.uga.miage.m1.polygons.gui.persistence.Visitable;
 import edu.uga.miage.m1.polygons.gui.persistence.Visitor;
+import edu.uga.singleshape.CubePanel;
 
-public class Circle extends SimpleShape implements Visitable {
+public class Cube extends SimpleShape implements Visitable {
 
-    public Circle(int x, int y) {
-       super(x, y);
+    public Cube(int x, int y) {
+      super(x, y);
     }
 
     /**
      * Implements the <tt>SimpleShape.draw()</tt> method for painting
      * the shape.
+     * 
      * @param g2 The graphics object used for painting.
      */
     public void draw(Graphics2D g2) {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         GradientPaint gradient = new GradientPaint(mX, mY, Color.RED, mX + 50f, mY, Color.WHITE);
         g2.setPaint(gradient);
-        g2.fill(new Ellipse2D.Double(mX, mY, 50, 50));
         BasicStroke wideStroke = new BasicStroke(2.0f);
         g2.setColor(Color.black);
         g2.setStroke(wideStroke);
-        g2.draw(new Ellipse2D.Double(mX, mY, 50, 50));
+        CubePanel c = new CubePanel(50, mX + 15, mY + 45);
+        c.paintComponent(g2);
     }
 
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
-    }
-
-    public int getX() {
-        return mX;
-    }
-
-    public int getY() {
-        return mY;
-    }
-
-    @Override
-    public SimpleShape move(int x, int y) {
-        mX=x;
-        mY=y;
-        return this;
     }
 }
