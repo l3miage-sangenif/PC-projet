@@ -67,4 +67,21 @@ public class Triangle extends SimpleShape implements Visitable {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
+
+    @Override
+    public int getX() {
+        return mX;
+    }
+
+    @Override
+    public int getY() {
+        return mY;
+    }
+
+    @Override
+    public SimpleShape move(int x, int y) {
+        mX=x;
+        this.mY=y;
+        return this;
+    }
 }

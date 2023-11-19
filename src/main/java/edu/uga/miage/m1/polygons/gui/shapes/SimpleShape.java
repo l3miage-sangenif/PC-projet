@@ -45,5 +45,4 @@ public abstract class SimpleShape
     public void setY(int y) {
         mY=y;
     }
-
 }

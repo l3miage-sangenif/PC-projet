@@ -26,10 +26,14 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 
+import edu.uga.miage.m1.polygons.gui.command.Command;
+import edu.uga.miage.m1.polygons.gui.command.CommandAddShape;
+import edu.uga.miage.m1.polygons.gui.command.CommandMoveShape;
 import edu.uga.miage.m1.polygons.gui.persistence.JSonVisitor;
 import edu.uga.miage.m1.polygons.gui.persistence.XMLVisitor;
 import edu.uga.miage.m1.polygons.gui.shapes.Circle;
 import edu.uga.miage.m1.polygons.gui.shapes.Cube;
+import edu.uga.miage.m1.polygons.gui.shapes.ListShapes;
 import edu.uga.miage.m1.polygons.gui.shapes.SimpleShape;
 import edu.uga.miage.m1.polygons.gui.shapes.Square;
 import edu.uga.miage.m1.polygons.gui.shapes.Triangle;
@@ -51,7 +55,6 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
     private static final long serialVersionUID = 1L;
 
     private transient Deque<SimpleShape> list = new ArrayDeque<>();
-
     private JToolBar mToolbar;
 
     private Shapes mSelected;
@@ -67,6 +70,12 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
     private MouseEvent lastDraggedEvt;
 
     private static Logger logger;
+
+    private transient ListShapes listShapes;
+
+    private transient Deque<Command> listCommands =  new ArrayDeque<>();
+
+    private transient Deque<Command> listCommandsUndo =  new ArrayDeque<>();
 
     /**
      * Tracks buttons to manage the background.
@@ -92,6 +101,7 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
         mPanel.addMouseListener(this);
         mPanel.addMouseMotionListener(this);
         mLabel = new JLabel(" ", 2);
+        listShapes = new ListShapes(mPanel);
         // Fills the panel
         setLayout(new BorderLayout());
         add(mToolbar, BorderLayout.NORTH);
@@ -108,7 +118,7 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
     }
 
     public void exportJson() {
-        Deque<SimpleShape> listCopy = new ArrayDeque<>(list);
+        Deque<SimpleShape> listCopy  = listShapes.getList();
         String jsonExport = "";
         StringBuilder bld = new StringBuilder();
         JSonVisitor jsonVisiteur = new JSonVisitor();
@@ -127,10 +137,11 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
     }
 
     public void exportXml() {
+        Deque<SimpleShape> listCopy  = listShapes.getList();
         String xmlExport = "";
         StringBuilder bld = new StringBuilder();
         XMLVisitor xmlVisitor = new XMLVisitor();
-        for (SimpleShape s : list) {
+        for (SimpleShape s : listCopy) {
             s.accept(xmlVisitor);
             bld.append(xmlVisitor.getRepresentation());
         }
@@ -186,21 +197,25 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
     public void mouseClicked(MouseEvent evt) {
         if (mPanel.contains(evt.getX(), evt.getY())) {
             Graphics2D g2 = (Graphics2D) mPanel.getGraphics();
+            Command addShape;
             switch (mSelected) {
                 case CIRCLE:
                     Circle c = new Circle(evt.getX(), evt.getY());
-                    c.draw(g2);
-                    list.addLast(c);
+                    addShape = new CommandAddShape(c);
+                    addShape.execute(listShapes, g2);
+                    listCommands.addFirst(addShape);
                     break;
                 case TRIANGLE:
                     Triangle t = new Triangle(evt.getX(), evt.getY());
-                    t.draw(g2);
-                    list.addLast(t);
+                    addShape = new CommandAddShape(t);
+                    addShape.execute(listShapes, g2);
+                    listCommands.addFirst(addShape);
                     break;
                 case SQUARE:
                     Square s = new Square(evt.getX(), evt.getY());
-                    s.draw(g2);
-                    list.addLast(s);
+                    addShape = new CommandAddShape(s);
+                    addShape.execute(listShapes, g2);
+                    listCommands.addFirst(addShape);
                     break;
                 case CUBE:
                     Cube c2 = new Cube(evt.getX(), evt.getY());
@@ -210,33 +225,29 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
                 default:
                     logger.log(null, "No shape named " + mSelected);
             }
+            listCommandsUndo =  new ArrayDeque<>();
         }
-    }
-
-    private void undoLastShape() {
-        if (!list.isEmpty()) {
-            list.pollLast();
-            playUndo();
-        }
-    }
-
-    private void playUndo() {
-        Graphics2D g2 = (Graphics2D) mPanel.getGraphics();
-
-        // Clear the canvas by filling it with a white background
-        g2.setColor(Color.WHITE);
-        g2.fillRect(0, 0, mPanel.getWidth(), mPanel.getHeight());
-        for (SimpleShape s : list) {
-            s.draw(g2);
-        }
-
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if ((e.getKeyCode() == KeyEvent.VK_Z) && (e.isControlDown())) {
-            // Ctrl+Z is pressed
-            undoLastShape();
+        if ((e.getKeyCode() == KeyEvent.VK_Z) 
+            && (e.isControlDown())
+            && !listCommands.isEmpty()) {
+                Command command = listCommands.pollFirst();
+                Graphics2D g2 = (Graphics2D) mPanel.getGraphics();
+                g2.setColor(Color.WHITE);
+                g2.fillRect(0, 0, mPanel.getWidth(), mPanel.getHeight());
+                command.undo(listShapes, g2);
+                listCommandsUndo.addFirst(command);
+        }
+        if ((e.getKeyCode() == KeyEvent.VK_Y) 
+            && (e.isControlDown())
+            && !listCommandsUndo.isEmpty()) {
+                Command command = listCommandsUndo.pollFirst();
+                Graphics2D g2 = (Graphics2D) mPanel.getGraphics();
+                command.execute(listShapes, g2);
+                listCommands.addFirst(command);
         }
     }
 
@@ -298,27 +309,33 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
      * @param evt The associated mouse event.
      */
     public void mouseDragged(MouseEvent evt) {
-        if (shapeToMove == null)
-            for (SimpleShape simpleShape : list) {
-                if (simpleShape.getX() >= evt.getX() - 50 &&
-                        simpleShape.getX() <= evt.getX() &&
-                        simpleShape.getY() >= evt.getY() - 50 &&
-                        simpleShape.getY() <= evt.getY()) {
-                    shapeToMove = simpleShape;
-                    
+        SimpleShape shapeInit = shapeToMove;
+        if (shapeToMove==null)
+            for (SimpleShape simpleShape : listShapes.getList()) {
+                if(simpleShape.getX()>=evt.getX()-50 && 
+                    simpleShape.getX()<=evt.getX() && 
+                    simpleShape.getY()>=evt.getY()-50 && 
+                    simpleShape.getY()<=evt.getY()) {
+                        shapeToMove=simpleShape;
                 }
             }
         if (shapeToMove != null) {
             if (lastDraggedEvt == null) {
                 lastDraggedEvt = evt;
             }
-            shapeToMove.setX(shapeToMove.getX() + evt.getX() - lastDraggedEvt.getX());
-            shapeToMove.setY(shapeToMove.getY() + evt.getY() - lastDraggedEvt.getY());
-            lastDraggedEvt = evt;
-            list.remove(shapeToMove);
-            list.addLast(shapeToMove);
-            playUndo();
+            CommandMoveShape moveShape = new CommandMoveShape(shapeToMove, lastDraggedEvt.getX(), lastDraggedEvt.getY(), evt);
+            Graphics2D g2 = (Graphics2D) mPanel.getGraphics();
+            moveShape.execute(listShapes, g2);
+            // add a move command only once and then stack it to make ctrl+z and ctrl+y better
+            if(moveShape.stackMultipleCommand(listCommands.peekFirst()) && shapeInit!=null){
+                moveShape.stackMultipleCommandMove((CommandMoveShape) listCommands.peekFirst());
+            }
+            else {
+                listCommands.addFirst(moveShape);
+            }
+            lastDraggedEvt=evt;
         }
+        listCommandsUndo =  new ArrayDeque<>();
     }
 
     /**
