@@ -41,7 +41,8 @@ public class ListShapes {
 
     public void moveShape(SimpleShape shape, int x, int y) {
         list.remove(shape);
-        shape.move(x,y);
+        shape.setX(x);
+        shape.setY(y);
         addShape(shape);
     }
 }

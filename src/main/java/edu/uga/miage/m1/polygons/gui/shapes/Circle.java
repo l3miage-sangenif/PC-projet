@@ -62,10 +62,4 @@ public class Circle extends SimpleShape implements Visitable {
         return mY;
     }
 
-    @Override
-    public SimpleShape move(int x, int y) {
-        mX=x;
-        mY=y;
-        return this;
-    }
 }

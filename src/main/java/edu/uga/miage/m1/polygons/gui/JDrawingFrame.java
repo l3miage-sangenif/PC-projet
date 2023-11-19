@@ -219,8 +219,9 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
                     break;
                 case CUBE:
                     Cube c2 = new Cube(evt.getX(), evt.getY());
-                    c2.draw(g2);
-                    list.addLast(c2);
+                    addShape = new CommandAddShape(c2);
+                    addShape.execute(listShapes, g2);
+                    listCommands.addFirst(addShape);
                     break;
                 default:
                     logger.log(null, "No shape named " + mSelected);
