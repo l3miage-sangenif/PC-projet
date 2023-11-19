@@ -33,15 +33,10 @@ import edu.uga.miage.m1.polygons.gui.persistence.Visitor;
  *
  * @author <a href="mailto:christophe.saint-marcel@univ-grenoble-alpes.fr">Christophe</a>
  */
-public class Square implements SimpleShape, Visitable {
-
-    int mX;
-
-    int mY;
+public class Square extends SimpleShape implements Visitable {
 
     public Square(int x, int y) {
-        mX = x - 25;
-        mY = y - 25;
+     super(x, y);
     }
 
     /**
@@ -64,25 +59,4 @@ public class Square implements SimpleShape, Visitable {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
-
-    @Override
-    public int getX() {
-        return mX;
-    }
-
-    @Override
-    public int getY() {
-        return mY;
-    }
-
-    @Override
-    public void setX(int x) {
-        mX=x;
-    }
-
-    @Override
-    public void setY(int y) {
-        mY=y;
-    }
-
 }

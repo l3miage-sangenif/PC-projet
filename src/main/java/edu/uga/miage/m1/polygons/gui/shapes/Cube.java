@@ -28,15 +28,10 @@ import edu.uga.miage.m1.polygons.gui.persistence.Visitable;
 import edu.uga.miage.m1.polygons.gui.persistence.Visitor;
 import edu.uga.singleshape.CubePanel;
 
-public class Cube implements SimpleShape, Visitable {
-
-    int mX;
-
-    int mY;
+public class Cube extends SimpleShape implements Visitable {
 
     public Cube(int x, int y) {
-        mX = x - 25;
-        mY = y - 25;
+      super(x, y);
     }
 
     /**
@@ -60,23 +55,4 @@ public class Cube implements SimpleShape, Visitable {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
-
-    public int getX() {
-        return mX;
-    }
-
-    public int getY() {
-        return mY;
-    }
-
-    @Override
-    public void setX(int x) {
-        mX = x;
-    }
-
-    @Override
-    public void setY(int y) {
-        mY = y;
-    }
-
 }

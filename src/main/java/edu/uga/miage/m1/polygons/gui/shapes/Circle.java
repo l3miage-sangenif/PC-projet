@@ -27,15 +27,10 @@ import java.awt.geom.Ellipse2D;
 import edu.uga.miage.m1.polygons.gui.persistence.Visitable;
 import edu.uga.miage.m1.polygons.gui.persistence.Visitor;
 
-public class Circle implements SimpleShape, Visitable {
-
-    int mX;
-
-    int mY;
+public class Circle extends SimpleShape implements Visitable {
 
     public Circle(int x, int y) {
-        mX = x - 25;
-        mY = y - 25;
+       super(x, y);
     }
 
     /**
@@ -58,23 +53,4 @@ public class Circle implements SimpleShape, Visitable {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
-
-    public int getX() {
-        return mX;
-    }
-
-    public int getY() {
-        return mY;
-    }
-
-    @Override
-    public void setX(int x) {
-        mX=x;
-    }
-
-    @Override
-    public void setY(int y) {
-        mY=y;
-    }
-
 }
