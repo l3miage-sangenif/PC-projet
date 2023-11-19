@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -64,7 +65,7 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
 
     private transient ActionListener mReusableActionListener = new ShapeActionListener(this);
 
-    private transient SimpleShape shapeToMove;
+    private transient ListShapes shapeToMove;
 
     private MouseEvent lastDraggedEvt;
 
@@ -80,6 +81,10 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
      * Tracks buttons to manage the background.
      */
     private EnumMap<Shapes, JButton> mButtons = new EnumMap<>(Shapes.class);
+
+    private boolean selectedMode;
+
+    private boolean shapeInit = true; // the move hasn't started
 
     /**
      * Default constructor that populates the main window.
@@ -101,6 +106,7 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
         mPanel.addMouseMotionListener(this);
         mLabel = new JLabel(" ", 2);
         listShapes = new ListShapes(mPanel);
+        shapeToMove = new ListShapes(mPanel);
         // Fills the panel
         setLayout(new BorderLayout());
         add(mToolbar, BorderLayout.NORTH);
@@ -111,9 +117,10 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
         addShape(Shapes.TRIANGLE, new ImageIcon(getClass().getResource("images/triangle.png")));
         addShape(Shapes.CIRCLE, new ImageIcon(getClass().getResource("images/circle.png")));
         addShape(Shapes.CUBE, new ImageIcon(getClass().getResource("images/underc.png")));
+        setCursor();
         addExport("export json", (ActionEvent e) -> exportJson());
         addExport("export xml", (ActionEvent e) -> exportXml());
-        setPreferredSize(new Dimension(400, 400));
+        setPreferredSize(new Dimension(600, 600));
     }
 
     public void exportJson() {
@@ -159,6 +166,23 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
         }
     }
 
+    private void setCursor() {
+        ImageIcon imageIcon = new ImageIcon(getClass().getResource("images/cursor.png"));
+        Image image = imageIcon.getImage(); // transform it 
+        Image newimg = image.getScaledInstance(40, 40,  java.awt.Image.SCALE_SMOOTH); // scale it the smooth way  
+        imageIcon = new ImageIcon(newimg);  // transform it back
+        JButton button = new JButton(imageIcon);
+        ActionListener event = (ActionEvent e) -> setSelectedMode(true);
+        button.addActionListener(event);
+        mToolbar.add(button);
+        mToolbar.validate();
+    }
+
+    public void setSelectedMode(boolean selectedMode) {
+        this.selectedMode = selectedMode;
+        this.requestFocusInWindow();
+    }
+
     /**
      * Injects an available <tt>SimpleShape</tt> into the drawing frame.
      * 
@@ -197,35 +221,60 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
         if (mPanel.contains(evt.getX(), evt.getY())) {
             Graphics2D g2 = (Graphics2D) mPanel.getGraphics();
             Command addShape;
-            switch (mSelected) {
-                case CIRCLE:
-                    Circle c = new Circle(evt.getX(), evt.getY());
-                    addShape = new CommandAddShape(c);
-                    addShape.execute(listShapes, g2);
-                    listCommands.addFirst(addShape);
-                    break;
-                case TRIANGLE:
-                    Triangle t = new Triangle(evt.getX(), evt.getY());
-                    addShape = new CommandAddShape(t);
-                    addShape.execute(listShapes, g2);
-                    listCommands.addFirst(addShape);
-                    break;
-                case SQUARE:
-                    Square s = new Square(evt.getX(), evt.getY());
-                    addShape = new CommandAddShape(s);
-                    addShape.execute(listShapes, g2);
-                    listCommands.addFirst(addShape);
-                    break;
-                case CUBE:
-                    Cube c2 = new Cube(evt.getX(), evt.getY());
-                    addShape = new CommandAddShape(c2);
-                    addShape.execute(listShapes, g2);
-                    listCommands.addFirst(addShape);
-                    break;
-                default:
-                    logger.log(null, "No shape named " + mSelected);
+            if(selectedMode){
+                addShapeOnTop(evt);
             }
+            else 
+                switch (mSelected) {
+                    case CIRCLE:
+                        Circle c = new Circle(evt.getX(), evt.getY());
+                        addShape = new CommandAddShape(c);
+                        addShape.execute(listShapes, g2);
+                        listCommands.addFirst(addShape);
+                        break;
+                    case TRIANGLE:
+                        Triangle t = new Triangle(evt.getX(), evt.getY());
+                        addShape = new CommandAddShape(t);
+                        addShape.execute(listShapes, g2);
+                        listCommands.addFirst(addShape);
+                        break;
+                    case SQUARE:
+                        Square s = new Square(evt.getX(), evt.getY());
+                        addShape = new CommandAddShape(s);
+                        addShape.execute(listShapes, g2);
+                        listCommands.addFirst(addShape);
+                        break;
+                    case CUBE:
+                        Cube c2 = new Cube(evt.getX(), evt.getY());
+                        addShape = new CommandAddShape(c2);
+                        addShape.execute(listShapes, g2);
+                        listCommands.addFirst(addShape);
+                        break;
+                    default:
+                        logger.log(null, "No shape named " + mSelected);
+                }
             listCommandsUndo =  new ArrayDeque<>();
+        }
+    }
+
+    private void addShapeOnTop(MouseEvent evt) {
+        SimpleShape shapeOnTop = null;
+        for (SimpleShape simpleShape : listShapes.getList()) {
+            if(simpleShape.getX()>=evt.getX()-50 && 
+                simpleShape.getX()<=evt.getX() && 
+                simpleShape.getY()>=evt.getY()-50 && 
+                simpleShape.getY()<=evt.getY()) {
+                    boolean isAlreadyInside=false;
+                    for (SimpleShape s : shapeToMove.getList()) {
+                        if (s==simpleShape)
+                            isAlreadyInside=true;
+                    }
+                    if (!isAlreadyInside)
+                        shapeOnTop=simpleShape;
+            }
+        }
+        if (shapeOnTop!=null) {
+            shapeToMove.addShape(shapeOnTop);
         }
     }
 
@@ -297,8 +346,11 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
      * @param evt The associated mouse event.
      */
     public void mouseReleased(MouseEvent evt) {
-        shapeToMove = null;
+        if (lastDraggedEvt!=null) {
+            shapeToMove = new ListShapes(mPanel);
+        }
         lastDraggedEvt = null;
+        shapeInit=true;
         // Do nothing
     }
 
@@ -309,16 +361,9 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
      * @param evt The associated mouse event.
      */
     public void mouseDragged(MouseEvent evt) {
-        SimpleShape shapeInit = shapeToMove;
-        if (shapeToMove==null)
-            for (SimpleShape simpleShape : listShapes.getList()) {
-                if(simpleShape.getX()>=evt.getX()-50 && 
-                    simpleShape.getX()<=evt.getX() && 
-                    simpleShape.getY()>=evt.getY()-50 && 
-                    simpleShape.getY()<=evt.getY()) {
-                        shapeToMove=simpleShape;
-                }
-            }
+        if (shapeToMove.getList().isEmpty()) {
+            addShapeOnTop(evt);
+        }
         if (shapeToMove != null) {
             if (lastDraggedEvt == null) {
                 lastDraggedEvt = evt;
@@ -327,11 +372,12 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
             Graphics2D g2 = (Graphics2D) mPanel.getGraphics();
             moveShape.execute(listShapes, g2);
             // add a move command only once and then stack it to make ctrl+z and ctrl+y better
-            if(moveShape.stackMultipleCommand(listCommands.peekFirst()) && shapeInit!=null){
+            if(moveShape.stackMultipleCommand(listCommands.peekFirst()) && !shapeInit){ // bug here ?
                 moveShape.stackMultipleCommandMove((CommandMoveShape) listCommands.peekFirst());
             }
             else {
                 listCommands.addFirst(moveShape);
+                shapeInit=false;
             }
             lastDraggedEvt=evt;
         }
@@ -384,6 +430,7 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
         public void actionPerformed(ActionEvent evt) {
             // Itère sur tous les boutons
             jDrawingFrame.setSelectedShape(evt);
+            setSelectedMode(false);
         }
     }
 }
