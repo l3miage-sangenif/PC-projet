@@ -60,14 +60,4 @@ public class Square extends SimpleShape implements Visitable {
         visitor.visit(this);
     }
 
-    @Override
-    public int getX() {
-        return mX;
-    }
-
-    @Override
-    public int getY() {
-        return mY;
-    }
-
 }
