@@ -8,7 +8,9 @@ import java.awt.Dimension;
 import javax.swing.JPanel;
 
 import edu.uga.miage.m1.polygons.gui.shapes.Circle;
+import edu.uga.miage.m1.polygons.gui.shapes.Cube;
 import edu.uga.miage.m1.polygons.gui.shapes.Square;
+import edu.uga.miage.m1.polygons.gui.shapes.Triangle;
 
 class TestShapes {
     @Test
@@ -29,6 +31,37 @@ class TestShapes {
     @Test
     void testSquare() {
         Square square = new Square(100,200);
+
+        JPanel mPanel = new JPanel();
+        mPanel.setBackground(Color.WHITE);
+        mPanel.setLayout(null);
+        mPanel.setMinimumSize(new Dimension(400, 400));
+
+        Graphics2D g2 = (Graphics2D) mPanel.getGraphics();
+
+        Assertions.assertEquals(75,square.getX());
+        Assertions.assertEquals(175,square.getY());
+    }
+
+    @Test
+    void testTriangle() {
+        Triangle square = new Triangle(100,200);
+
+        JPanel mPanel = new JPanel();
+        mPanel.setBackground(Color.WHITE);
+        mPanel.setLayout(null);
+        mPanel.setMinimumSize(new Dimension(400, 400));
+
+        Graphics2D g2 = (Graphics2D) mPanel.getGraphics();
+
+        Assertions.assertEquals(75,square.getX());
+        Assertions.assertEquals(175,square.getY());
+    }
+
+
+    @Test
+    void testCube() {
+        Cube square = new Cube(100,200);
 
         JPanel mPanel = new JPanel();
         mPanel.setBackground(Color.WHITE);
