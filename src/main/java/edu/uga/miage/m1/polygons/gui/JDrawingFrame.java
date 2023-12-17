@@ -119,6 +119,7 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
         addShape(Shapes.CUBE, new ImageIcon(getClass().getResource("images/underc.png")));
         setCursor();
         addExport("export json", (ActionEvent e) -> exportJson());
+        addExport("import json", (ActionEvent e) -> importJson());
         addExport("export xml", (ActionEvent e) -> exportXml());
         setPreferredSize(new Dimension(600, 600));
     }
@@ -141,6 +142,13 @@ public class JDrawingFrame extends JFrame implements MouseListener, MouseMotionL
         exportGlobal("{\"shapes\": [" + jsonExport + "]}", "jsonExport.json");
         this.requestFocusInWindow();
     }
+
+    public void importJson() {
+        ImportJsonComposant importJson = new ImportJsonComposant(this);
+        importJson.importJson();
+        this.requestFocusInWindow();
+    }
+
 
     public void exportXml() {
         Deque<SimpleShape> listCopy  = listShapes.getList();
